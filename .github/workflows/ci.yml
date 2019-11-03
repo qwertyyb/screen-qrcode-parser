@@ -3,6 +3,9 @@ name: release
 on:
   release:
     types: ['published']
+  push:
+    branch:
+      - master
 
 jobs:
   release:
@@ -11,15 +14,18 @@ jobs:
     
     steps:
     - uses: actions/checkout@v1
-    - name: get version
-      run: |
-        version=$(git describe --tags `git rev-list --tags --max-count=1`)
-        echo $version
+
+    - uses: actions/setup-node@v1
+      with:
+        node-version: '10.x'
 
     - name: install depencies
       run: npm install
     - name: build
-      run: npm run build -- -c.extraMetadata.version=$version
+      run: |
+        version=$(git describe --tags `git rev-list --tags --max-count=1`)
+        echo $version
+        npm run build -- -c.extraMetadata.version=$version
 
     - name: release
       uses: AButler/upload-release-assets@v1.0
