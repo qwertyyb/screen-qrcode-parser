@@ -1,0 +1,28 @@
+name: release
+
+on:
+  release:
+    types: ['published']
+
+jobs:
+  release:
+
+    runs-on: macOS-latest
+    
+    steps:
+    - uses: actions/checkout@v1
+    - name: get version
+      run: |
+        version=$(git describe --tags `git rev-list --tags --max-count=1`)
+        echo $version
+
+    - name: install depencies
+      run: npm install
+    - name: build
+      run: npm run build -- -c.extraMetadata.version=$version
+
+    - name: release
+      uses: AButler/upload-release-assets@v1.0
+      with:
+        files: 'dist/*.dmg'
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
