@@ -1,4 +1,4 @@
-const { app, Menu, Tray, BrowserWindow, ipcMain, dialog } = require('electron')
+const { app, Menu, Tray, BrowserWindow, ipcMain, dialog, clipboard } = require('electron')
 
 let tray = null
 let mainWindow = null
@@ -66,7 +66,7 @@ ipcMain.on('qrcode-received', (event, { data }) => {
     message: `二维码内容为: ${data}, 复制到粘贴板?`
   }).then(({ response }) => {
     if (response) {
-      clipboard.write(data)
+      clipboard.writeText(data)
     }
   })
 })
