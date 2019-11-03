@@ -48,7 +48,6 @@ const createMainWindow = () => {
       webSecurity: true
     }
   })
-  // mainWindow.loadURL(`https://www.baidu.com`)
   mainWindow.loadURL(`file://${__dirname}/windows/main/index.html`)
   mainWindow.setIgnoreMouseEvents(true)
   // mainWindow.webContents.openDevTools()
