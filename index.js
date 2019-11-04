@@ -36,7 +36,7 @@ const createTray = () => {
       role: 'about'
     }
   ])
-  tray.setToolTip('This is my application.')
+  tray.setToolTip('屏幕二维码识别')
   tray.setContextMenu(contextMenu)
   return tray
 }
@@ -52,7 +52,7 @@ const createMainWindow = () => {
     transparent: true,
     alwaysOnTop: true,
     webPreferences: {
-      devTools: true,
+      devTools: isDev(),
       nodeIntegration: true,
       webSecurity: true
     }
@@ -74,7 +74,7 @@ ipcMain.on('qrcode-received', (event, { data }) => {
     title: '操作提示',
     type: 'none',
     buttons: ['取消', '确认'],
-    message: `二维码内容为: ${data}, 复制到粘贴板?`
+    message: `二维码内容为: \n ${data} \n复制到粘贴板?`
   }).then(({ response }) => {
     mainWindow.hide()
     if (response) {
@@ -82,6 +82,10 @@ ipcMain.on('qrcode-received', (event, { data }) => {
     }
   })
 })
-console.log(process.env)
+
+ipcMain.on('close-window', event => {
+  console.log('close window')
+  mainWindow.hide()
+})
 
 // app.dock.hide()
