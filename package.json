@@ -17,6 +17,10 @@
       "category": "public.app-category.utilities",
       "icon": "assets/appicon.png",
       "identity": null,
+      "electronLanguages": [
+        "en",
+        "zh_CN"
+      ],
       "extendInfo": {
         "LSBackgroundOnly": 1,
         "LSUIElement": 1

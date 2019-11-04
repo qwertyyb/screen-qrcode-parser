@@ -1,5 +1,7 @@
 const { app, Menu, Tray, BrowserWindow, ipcMain, dialog, clipboard } = require('electron')
 
+app.disableHardwareAcceleration()
+
 let tray = null
 let mainWindow = null
 
@@ -9,11 +11,17 @@ const createTray = () => {
     {
       label: '读取二维码',
       type: 'normal',
-      click () {
+      click (menuItem, browserWindow, event) {
         const { screen } = require('electron')
-        mainWindow && mainWindow.webContents.send('read-screen-qrcode', {
-          workArea: screen.getPrimaryDisplay().workArea
+        const curScreen = screen.getDisplayNearestPoint(screen.getCursorScreenPoint())
+        console.log(curScreen)
+        if (!mainWindow) { return }
+        mainWindow.webContents.send('read-screen-qrcode', {
+          curScreen
         })
+        mainWindow.show()
+        mainWindow.setPosition(curScreen.workArea.x, curScreen.workArea.y)
+        mainWindow.setSize(curScreen.workArea.width, curScreen.workArea.height)
       } 
     },
     { type: 'separator' },
@@ -50,12 +58,14 @@ const createMainWindow = () => {
   })
   mainWindow.loadURL(`file://${__dirname}/windows/main/index.html`)
   mainWindow.setIgnoreMouseEvents(true)
-  // mainWindow.webContents.openDevTools()
+  mainWindow.webContents.openDevTools()
   return mainWindow
 }
 app.on('ready', () => {
   mainWindow = createMainWindow()
   tray = createTray()
+
+  mainWindow.hide()
 })
 
 ipcMain.on('qrcode-received', (event, { data }) => {
@@ -65,6 +75,7 @@ ipcMain.on('qrcode-received', (event, { data }) => {
     buttons: ['取消', '确认'],
     message: `二维码内容为: ${data}, 复制到粘贴板?`
   }).then(({ response }) => {
+    mainWindow.hide()
     if (response) {
       clipboard.writeText(data)
     }
