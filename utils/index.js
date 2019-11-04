@@ -10,5 +10,8 @@ module.exports = {
       const source = sources.find(item => item.display_id === screen.id + '')
       return source && source.thumbnail
     })
+  },
+  isDev () {
+    return process.env.NODE_ENV === 'dev'
   }
 }

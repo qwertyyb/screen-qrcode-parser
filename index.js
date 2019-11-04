@@ -1,4 +1,5 @@
 const { app, Menu, Tray, BrowserWindow, ipcMain, dialog, clipboard } = require('electron')
+const { isDev } = require('./utils')
 
 app.disableHardwareAcceleration()
 
@@ -58,7 +59,7 @@ const createMainWindow = () => {
   })
   mainWindow.loadURL(`file://${__dirname}/windows/main/index.html`)
   mainWindow.setIgnoreMouseEvents(true)
-  mainWindow.webContents.openDevTools()
+  isDev() && mainWindow.webContents.openDevTools()
   return mainWindow
 }
 app.on('ready', () => {
@@ -81,6 +82,6 @@ ipcMain.on('qrcode-received', (event, { data }) => {
     }
   })
 })
-
+console.log(process.env)
 
 // app.dock.hide()
