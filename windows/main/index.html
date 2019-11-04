@@ -25,11 +25,17 @@
       transition: all .6s;
       opacity: 0;
     }
+    #video {
+      position: relative;
+      z-index: -10000;
+      opacity: 0;
+    }
   </style>
 </head>
 <body>
   <img src="" alt="" style="width: 100%;" class="preview-img">
   <div class="location-rect"></div>
+  <video src="" autoplay controls id="video"></video>
   <script src="./index.js"></script>
 </body>
 </html>

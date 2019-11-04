@@ -5,8 +5,8 @@ const utils = require('../../utils')
 
 const calcRightRect = qrlocation => {
   const { topLeftCorner, topRightCorner, bottomLeftCorner } = qrlocation
-  const width = topRightCorner.x - topLeftCorner.x + 10
-  const height = bottomLeftCorner.y - topLeftCorner.y + 10
+  const width = topRightCorner.x - topLeftCorner.x + 4
+  const height = bottomLeftCorner.y - topLeftCorner.y + 4
   const top = topLeftCorner.y - 23 - 5
   const left = topLeftCorner.x - 5
   return {
@@ -37,26 +37,31 @@ const updateRect = ({ top, left, width, height }) => {
   }, 3e3)
 }
 
+const emitCloseWindow = () => {
+  ipcRenderer.send('close-window')
+  location.reload()
+}
+
 ipcRenderer.on('read-screen-qrcode', (event, args) => {
   console.log('read screen qrcode')
-  return utils.getScreenshot(args.curScreen).then(thumbnail => {
-    if (!thumbnail) {
-      return alert('获取屏幕内容失败')
+  return utils.getScreenshot(args.curScreen).then(ctx => {
+    if (!ctx) {
+      alert('获取屏幕内容失败')
+      return emitCloseWindow()
     }
-    // $('img').attr('src', thumbnail.toDataURL())
-    const { width, height } = thumbnail.getSize()
-    const res = jsQR(thumbnail.toBitmap(), width, height)
+    const { width, height } = ctx.canvas
+    const res = jsQR(ctx.getImageData(0, 0, width, height).data, width, height)
     console.log(res)
     if (!res) {
-      return alert('未读取到二维码')
+      alert('未读取到二维码')
+      return emitCloseWindow()
     }
     if (!res.data) {
-      return alert('未识别到二维码内容')
+      alert('未识别到二维码内容')
+      return emitCloseWindow()
     }
-    if (res) {
-      const rect = calcRightRect(res.location, args.curScreen.workArea)
-      updateRect(rect)
-      setTimeout(() => ipcRenderer.send('qrcode-received', { data: res.data }), 600)
-    }
+    const rect = calcRightRect(res.location, args.curScreen.workArea)
+    updateRect(rect)
+    setTimeout(() => ipcRenderer.send('qrcode-received', { data: res.data }), 600)
   })
 })
