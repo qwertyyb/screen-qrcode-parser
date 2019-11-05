@@ -49,5 +49,56 @@ module.exports = {
   },
   isDev () {
     return process.env.NODE_ENV === 'dev'
+  },
+  detector(screen, cv) {
+    // const cv = module.exports
+    const { bounds, scaleFactor } = screen
+    return navigator.mediaDevices.getUserMedia({
+      audio: false,
+      video: {
+        mandatory: {
+          chromeMediaSource: 'desktop',
+          minWidth: bounds.width,
+          minHeight: bounds.height,
+          maxWidth: bounds.width * scaleFactor,
+          maxHeight: bounds.height * scaleFactor,
+          chromeMediaSourceId: `screen:${screen.id}:0`,
+        }
+      }
+    }).then(stream => {
+      const video = document.querySelector('#video')
+      video.srcObject = stream
+      return new Promise(resolve => {
+        video.onplay = () => {
+
+          video.style.height = video.videoHeight + 'px' // videoHeight
+          video.style.width = video.videoWidth + 'px' // videoWidth
+          const cap = new cv.VideoCapture(video)
+
+          // 创建存放图像的Mat
+          let imageMat = new cv.Mat(video.videoHeight, video.videoWidth, cv.CV_8UC4);
+          // 读一帧图像
+          console.log('read')
+          cap.read(imageMat);
+
+          const dst = new cv.Mat(videoHeight, videoWidth, cv.CV_8UC1)
+
+          const qrcodeDetector = new cv.QRcodeDetector(imageMat, dst)
+
+          console.log(dst)
+
+          // const canvas = document.createElement('canvas')
+          // canvas.width = video.videoWidth,
+          // canvas.height = video.videoHeight
+          // const ctx = canvas.getContext('2d')
+          // ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+          setTimeout(() => {
+            stream.getTracks().forEach(track => track.stop())
+          }, 300)
+          // document.getElementsByTagName('img')[0].src = canvas.toDataURL()
+          // resolve(ctx)
+        }
+      })
+    })
   }
 }

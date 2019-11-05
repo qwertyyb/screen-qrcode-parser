@@ -1,4 +1,4 @@
-const { ipcRenderer, remote } = require('electron')
+const { ipcRenderer } = require('electron')
 const jsQR = require('jsqr')
 const $ = require('jquery')
 const utils = require('../../utils')
@@ -43,6 +43,7 @@ const emitCloseWindow = () => {
 
 ipcRenderer.on('read-screen-qrcode', (event, args) => {
   console.log('read screen qrcode')
+  return utils.detector(args.curScreen, module.exports)
   return utils.getScreenshot(args.curScreen).then(ctx => {
     if (!ctx) {
       alert('获取屏幕内容失败')

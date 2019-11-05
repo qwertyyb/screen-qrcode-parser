@@ -50,7 +50,7 @@ const createMainWindow = () => {
     y: 0,
     frame: false,
     transparent: true,
-    alwaysOnTop: true,
+    // alwaysOnTop: true,
     webPreferences: {
       devTools: isDev(),
       nodeIntegration: true,
