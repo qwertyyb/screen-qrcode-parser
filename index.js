@@ -1,4 +1,4 @@
-const { app, Menu, Tray, BrowserWindow, ipcMain, dialog, clipboard } = require('electron')
+const { app, Menu, Tray, BrowserWindow, ipcMain, dialog, clipboard, } = require('electron')
 const { isDev } = require('./utils')
 
 app.disableHardwareAcceleration()
