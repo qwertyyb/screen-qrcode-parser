@@ -1,7 +1,8 @@
-const { ipcRenderer, remote } = require('electron')
+const { ipcRenderer, clipboard } = require('electron')
 const jsQR = require('jsqr')
 const $ = require('jquery')
 const utils = require('../../utils')
+const { detectMethod  } = require('../../config')
 
 const calcRightRect = (qrlocation, scaleFactor) => {
   const { topLeftCorner, topRightCorner, bottomLeftCorner } = qrlocation
@@ -14,6 +15,9 @@ const calcRightRect = (qrlocation, scaleFactor) => {
   }
 }
 
+
+const zxing = ZXing()
+
 let showRectTimeout = null
 const updateRect = ({ top, left, width, height }) => {
   clearTimeout(showRectTimeout)
@@ -25,42 +29,46 @@ const updateRect = ({ top, left, width, height }) => {
     width: width + 'px',
     transition: 'all .5s'
   })
-  showRectTimeout = setTimeout(() => {
-    $('.location-rect').css({
-      transition: 'none',
-      opacity: '0',
-      left: 0,
-      top: 0,
-      width: '3000px',
-      height: '3000px'
-    })
-  }, 3e3)
+  // showRectTimeout = setTimeout(() => {
+  //   $('.location-rect').css({
+  //     transition: 'none',
+  //     opacity: '0',
+  //     left: 0,
+  //     top: 0,
+  //     width: '3000px',
+  //     height: '3000px'
+  //   })
+  // }, 3e3)
 }
 
-const emitCloseWindow = () => {
-  ipcRenderer.send('close-window')
+const recreateWindow = () => {
+  ipcRenderer.send('mainWindow: recreate')
 }
 
 ipcRenderer.on('read-screen-qrcode', (event, args) => {
   console.log('read screen qrcode')
-  return utils.getScreenshot(args.curScreen).then(ctx => {
-    if (!ctx) {
-      alert('获取屏幕内容失败')
-      return emitCloseWindow()
+  return utils.getScreenshot(args.curScreen)
+  .then(ctx => {
+    console.log('detect method', detectMethod)
+    const detect = detectMethod === 'jsQR' ? utils.detectWithJsQR : detectMethod === 'zxing-wasm' ? utils.detectWithZXingWasm : null
+    if (!detect) {
+      throw new Error(`没有找到${detectMethod}的检测方法，请检查设置`)
     }
-    const { width, height } = ctx.canvas
-    const res = jsQR(ctx.getImageData(0, 0, width, height).data, width, height)
-    console.log(res)
-    if (!res) {
-      alert('未读取到二维码')
-      return emitCloseWindow()
+    const { text, location } = detect(ctx)
+    if (location) {
+      const rect = utils.calcQRRect(location, args.curScreen.scaleFactor)
+      updateRect(rect)
     }
-    if (!res.data) {
-      alert('未识别到二维码内容')
-      return emitCloseWindow()
-    }
-    const rect = calcRightRect(res.location, args.curScreen.scaleFactor)
-    updateRect(rect)
-    setTimeout(() => ipcRenderer.send('qrcode-received', { data: res.data }), 600)
+    setTimeout(() => {
+      if(confirm(`二维码内容为: \n ${text} \n复制到粘贴板?`)) {
+        clipboard.writeText(text)
+      }
+      recreateWindow()
+    }, 600)
+  })
+  .catch(err => {
+    alert(err.message)
+    recreateWindow()
+    throw err
   })
 })
