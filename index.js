@@ -1,4 +1,4 @@
-const { app, Menu, Tray, BrowserWindow, ipcMain, dialog, clipboard, } = require('electron')
+const { app, Menu, Tray, BrowserWindow, ipcMain, } = require('electron')
 const { isDev } = require('./utils')
 
 app.disableHardwareAcceleration()
@@ -50,7 +50,7 @@ const createMainWindow = () => {
     y: 0,
     frame: false,
     transparent: true,
-    // alwaysOnTop: true,
+    alwaysOnTop: true,
     webPreferences: {
       devTools: isDev(),
       nodeIntegration: true,
@@ -62,30 +62,23 @@ const createMainWindow = () => {
   isDev() && mainWindow.webContents.openDevTools()
   return mainWindow
 }
+
+const recreateMainWindow = () => {
+  mainWindow && !mainWindow.isDestroyed() && mainWindow.destroy()
+  mainWindow = createMainWindow()
+  mainWindow.hide()
+  return mainWindow
+}
 app.on('ready', () => {
   mainWindow = createMainWindow()
   tray = createTray()
 
   mainWindow.hide()
 })
+// listen this event will prevent default action (app will quit after close all window)
+app.on('window-all-closed', () => {})
 
-ipcMain.on('qrcode-received', (event, { data }) => {
-  dialog.showMessageBox({
-    title: '操作提示',
-    type: 'none',
-    buttons: ['取消', '确认'],
-    message: `二维码内容为: \n ${data} \n复制到粘贴板?`
-  }).then(({ response }) => {
-    mainWindow.hide()
-    if (response) {
-      clipboard.writeText(data)
-    }
-  })
+ipcMain.on('mainWindow: recreate', event => {
+  console.log(event)
+  recreateMainWindow()
 })
-
-ipcMain.on('close-window', event => {
-  console.log('close window')
-  mainWindow.hide()
-})
-
-// app.dock.hide()
