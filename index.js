@@ -1,4 +1,5 @@
 const { app, Menu, Tray, BrowserWindow, ipcMain, } = require('electron')
+const config = require('./config')
 const { isDev } = require('./utils')
 
 app.disableHardwareAcceleration()
@@ -24,6 +25,30 @@ const createTray = () => {
         mainWindow.setPosition(curScreen.workArea.x, curScreen.workArea.y)
         mainWindow.setSize(curScreen.workArea.width, curScreen.workArea.height)
       } 
+    },
+    { 
+      label: '切换检测方式',
+      type: 'submenu',
+      submenu: [
+        {
+          label: 'jsQR - 会返回位置信息，但二维码非常小或非常大时会检测不到',
+          type: 'radio',
+          checked: config.get('detectMethod') === 'jsQR',
+          click () {
+            console.log('toggle detect method')
+            config.set('detectMethod', 'jsQR')
+          }
+        },
+        {
+          label: 'ZXing WebAssembly - 检测效果非常好，但暂时缺少二维码的位置信息',
+          type: 'radio',
+          checked: config.get('detectMethod') === 'zxing-wasm',
+          click () {
+            console.log('toggle detect method')
+            config.set('detectMethod', 'zxing-wasm')
+          }
+        }
+      ]
     },
     { type: 'separator' },
     {
