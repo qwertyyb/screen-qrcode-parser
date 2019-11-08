@@ -1,8 +1,8 @@
 const { ipcRenderer, clipboard } = require('electron')
-const jsQR = require('jsqr')
 const $ = require('jquery')
 const utils = require('../../utils')
-const { detectMethod  } = require('../../config')
+const config = require('electron').remote.getGlobal('config')
+// const config = require('../../config')
 
 const calcRightRect = (qrlocation, scaleFactor) => {
   const { topLeftCorner, topRightCorner, bottomLeftCorner } = qrlocation
@@ -49,8 +49,11 @@ ipcRenderer.on('read-screen-qrcode', (event, args) => {
   console.log('read screen qrcode')
   return utils.getScreenshot(args.curScreen)
   .then(ctx => {
+    const detectMethod = config.detectMethod
     console.log('detect method', detectMethod)
+    console.time('detect time')
     const detect = detectMethod === 'jsQR' ? utils.detectWithJsQR : detectMethod === 'zxing-wasm' ? utils.detectWithZXingWasm : null
+    console.timeEnd('detect time')
     if (!detect) {
       throw new Error(`没有找到${detectMethod}的检测方法，请检查设置`)
     }
