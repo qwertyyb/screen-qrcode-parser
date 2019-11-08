@@ -1,6 +1,11 @@
 # Screen QRcode Parser
 
-Automatically detect and parse qrcode on the screen
+Automatically detect and parse QR code on the screen
+
+![](https://img.shields.io/badge/platform-Macos%20%7C%20Windows%20%7C%20Linux-lightgrey)
+![release status](https://github.com/qwertyyb/screen-qrcode-parser/workflows/release/badge.svg)
+![](https://img.shields.io/github/v/release/qwertyyb/screen-qrcode-parser)
+![](https://img.shields.io/github/license/qwertyyb/screen-qrcode-parser)
 
 ## Screenshot
 
