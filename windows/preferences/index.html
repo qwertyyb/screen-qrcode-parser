@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>首选项</title>
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      display: flex;
+    }
+    .form {
+      margin: auto;
+    }
+    .form-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .form-item label {
+      width: 80px;
+      text-align: justify;
+      text-align-last: justify;
+      margin-right: 10px;
+    }
+    .form-item input {
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="form">
+    <div class="form-item">
+      <label for="launch-at-login" class="item-label">开机启动</label>
+      <input type="checkbox" id="launch-at-login" name="launchAtLogin" class="item-input" />
+    </div>
+    <div class="form-item">
+      <label for="hotkey" class="item-label">快捷键</label>
+      <input type="button" id="hotkey" name="hotkey" class="item-input" value="control+shift+x" />
+    </div>
+  </div>
+  <script>
+    const { ipcRenderer, remote } = require('electron')
+    document.querySelector('input[name=launchAtLogin]').addEventListener('change', e => {
+      console.log(e)
+      const checked = e.target.checked
+      updatePreferences({ launchAtLogin: checked })
+    })
+    function start() {
+      let listening = false
+      const target = document.querySelector('input[name=hotkey]')
+      // console.log(target)
+      
+      const handleKeyEvent = (e) => {
+        console.log('key event', e)
+        const { shiftKey, metaKey, controlKey, altKey } = e
+        const key = String.fromCharCode(e.keyCode)
+        if (!e.key || e.key.length !== 1 || !key || key.length !== 1) return
+        let modifiers = []
+        metaKey && modifiers.push('Command')
+        controlKey && modifiers.push('Control')
+        shiftKey && modifiers.push('Shift')
+        altKey && modifiers.push('Alt')
+        if (!modifiers.length) return
+        let keystring = modifiers.join('+') + '+' + key.toUpperCase()
+        target.value = keystring
+        listening = false
+        updatePreferences({ hotkey: keystring })
+        document.removeEventListener('keydown', handleKeyEvent)
+      }
+
+      target.addEventListener('click', e => {
+        target.value = '请输入'
+        if (listening) return
+        console.log(e)
+        listening = true
+        document.addEventListener('keydown', handleKeyEvent)
+      })
+    }
+
+    const updatePreferences = preferences => {
+      ipcRenderer.send('preferences:update', preferences)
+    }
+
+    const init = () => {
+      const preferences = remote.getGlobal('preferences')
+      document.querySelector('input[name=launchAtLogin]').checked = preferences.launchAtLogin
+      document.querySelector('input[name=hotkey]').value = preferences.hotkey
+    }
+
+    start()
+    init()
+  </script>
+</body>
+</html>

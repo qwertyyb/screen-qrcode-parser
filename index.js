@@ -25,7 +25,7 @@ const createTray = () => {
     {
       label: '读取二维码',
       type: 'normal',
-      // accelerator: preferences.get('hotkey'),
+      accelerator: preferences.get('hotkey'),
       click () {
         emitScreenQRcodeParser()
       } 
@@ -53,6 +53,13 @@ const createTray = () => {
           }
         }
       ]
+    },
+    {
+      label: '首选项',
+      type: 'normal',
+      click () {
+        const win = createPreferencesWindow()
+      }
     },
     { type: 'separator' },
     {
@@ -93,8 +100,26 @@ const createMainWindow = () => {
   return mainWindow
 }
 
+const createPreferencesWindow = () => {
+  const window = new BrowserWindow({
+    width: 300,
+    height: 240,
+    resizable: false,
+    minimizable: false,
+    maximizable: false,
+    fullscreenable: false,
+    webPreferences: {
+      devTools: true,
+      nodeIntegration: true
+    }
+  })
+  window.loadFile('./windows/preferences/index.html')
+  window.openDevTools()
+  return window
+}
+
 const bindShortcut = () => {
-  const success = globalShortcut.register('Shift+Alt+Q', e => {
+  const success = globalShortcut.register(preferences.get('hotkey'), e => {
     emitScreenQRcodeParser()
   })
   if (!success) {
@@ -111,13 +136,30 @@ app.on('ready', () => {
   mainWindow = createMainWindow()
   tray = createTray()
 
-  // @todo disable hotkey before custom hotkey support to avoid conflicting
-  // bindShortcut()
+  bindShortcut()
 })
 // listen this event will prevent default action (app will quit after close all window)
 app.on('window-all-closed', () => {})
 
-ipcMain.on('mainWindow: recreate', event => {
+app.setLoginItemSettings({
+  openAtLogin: preferences.get('launchAtLogin'),
+  openAsHidden: true
+})
+
+ipcMain.on('mainWindow:recreate', event => {
   console.log('recreate window')
   recreateMainWindow()
+})
+
+ipcMain.on('preferences:update', (_, newpreferences) => {
+  console.log(newpreferences)
+  for(let key in newpreferences) {
+    preferences.set(key, newpreferences[key])
+  }
+  globalShortcut.unregisterAll()
+  if ('hotkey' in newpreferences) {
+    tray = createTray()
+    bindShortcut()
+  }
+  console.log(global.preferences)
 })

@@ -9,7 +9,8 @@ const db = lowdb(adapter)
 db.defaults({
   preferences: {
     hotkey: 'Shift+Alt+Q',
-    detectMethod: 'zxing-wasm'
+    detectMethod: 'zxing-wasm',
+    launchAtLogin: true
   }
 }).write()
 

@@ -41,7 +41,7 @@ const updateRect = ({ top, left, width, height }) => {
 }
 
 const recreateWindow = () => {
-  ipcRenderer.send('mainWindow: recreate')
+  ipcRenderer.send('mainWindow:recreate')
 }
 
 ipcRenderer.on('read-screen-qrcode', (event, args) => {
