@@ -1,8 +1,7 @@
 const { ipcRenderer, clipboard } = require('electron')
 const $ = require('jquery')
 const utils = require('../../utils')
-const config = require('electron').remote.getGlobal('config')
-// const config = require('../../config')
+const preferences = require('electron').remote.getGlobal('preferences')
 
 const calcRightRect = (qrlocation, scaleFactor) => {
   const { topLeftCorner, topRightCorner, bottomLeftCorner } = qrlocation
@@ -42,14 +41,14 @@ const updateRect = ({ top, left, width, height }) => {
 }
 
 const recreateWindow = () => {
-  ipcRenderer.send('mainWindow: recreate')
+  ipcRenderer.send('mainWindow:recreate')
 }
 
 ipcRenderer.on('read-screen-qrcode', (event, args) => {
   console.log('read screen qrcode')
   return utils.getScreenshot(args.curScreen)
   .then(ctx => {
-    const detectMethod = config.detectMethod
+    const detectMethod = preferences.detectMethod
     console.log('detect method', detectMethod)
     console.time('detect time')
     const detect = detectMethod === 'jsQR' ? utils.detectWithJsQR : detectMethod === 'zxing-wasm' ? utils.detectWithZXingWasm : null
